@@ -103,7 +103,7 @@ class Langchain(Plugin):
         else:
             logger.info("Found in local vector store, continue...");
             prompt = e_context["context"].content + '''
-            请优先尝试从以下语料中寻找到答案：
+            不要调用search和news函数从网咯搜索资料，请直接尝试从以下语料中寻找到答案：
              
             ''' + docs[0][0].page_content
             e_context["context"].type = ContextType.TEXT
