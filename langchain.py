@@ -5,12 +5,14 @@ import os
 
 import plugins
 from bridge.context import ContextType
+from bridge.reply import Reply, ReplyType
 from common.log import logger
 from plugins import *
 
 from pinecone import Pinecone
 from langchain_community.vectorstores import Pinecone as PineconeStore
 from langchain_community.embeddings.openai import OpenAIEmbeddings
+import openai
 
 @plugins.register(
     name="Langchain",
@@ -44,6 +46,14 @@ class Langchain(Plugin):
             self.openai_api_base = conf["openai_api_base"]
             self.openai_api_version = conf["openai_api_version"]
             self.openai_api_type = conf["openai_api_type"]
+
+            self.openai_query_key = conf["openai_query_key"]
+            self.openai_query_base = conf["openai_query_base"]
+            self.openai_query_prompt = conf["openai_query_prompt"]
+            self.openai_query_model = conf["openai_query_model"]
+            
+            openai.api_key = self.openai_query_key 
+            openai.api_base = self.openai_query_base
 
             self.llm_threshold = conf.get("llm_threshold", 0.8)
             self.plugin_trigger_prefix = conf.get("plugin_trigger_prefix", "$")
@@ -95,23 +105,36 @@ class Langchain(Plugin):
             raise e
     
         score = docs[0][1]
-        logger.info("search docs with score : %s " % score );
-        logger.info("LLM  threshold is : %s " % self.llm_threshold);
+        logger.info("search docs with score : %s " % score )
+        logger.info("LLM  threshold is : %s " % self.llm_threshold)
         if score < self.llm_threshold:
-            logger.info("Nothing match in local vector store, continue...");
+            logger.info("Nothing match in local vector store, continue...")
             e_context.action = EventAction.CONTINUE
         else:
-            logger.info("Found in local vector store, continue...");
+            logger.info("Found in local vector store, continue...")
             prompt = e_context["context"].content + '''
-            不要调用search和news函数从网咯搜索资料，请直接尝试从以下语料中寻找到答案：
+            （请尝试在以下知识库中整理出答案，找不到再自己尝试回答:
              
-            ''' + docs[0][0].page_content
+            ''' + docs[0][0].page_content + ')'
             e_context["context"].type = ContextType.TEXT
             e_context["context"].content = prompt.replace("\n", "")
             logger.debug("prompt is : %s " % prompt)
 
-            e_context.action = EventAction.CONTINUE
-        
+            response = openai.ChatCompletion.create(
+                model=self.openai_query_model,
+               
+                messages=[
+                    {"role": "system", "content": self.openai_query_prompt },
+                    {"role": "user", "content": prompt.replace("\n", "")}
+                ]
+            )
+            res_content = response.choices[0].message.content.strip().replace("<|endoftext|>", "")
+            reply = Reply()
+            reply.type = ReplyType.TEXT
+            reply.content = res_content
+
+            e_context["reply"] = reply
+            e_context.action = EventAction.BREAK_PASS        
             
     def get_help_text(self, **kwargs):
         return "搜索本地知识库。"
