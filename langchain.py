@@ -118,7 +118,7 @@ class Langchain(Plugin):
             ''' + docs[0][0].page_content + ')'
             e_context["context"].type = ContextType.TEXT
             e_context["context"].content = prompt.replace("\n", "")
-            logger.debug("prompt is : %s " % prompt)
+            logger.info("prompt is : %s " % prompt)
 
             response = openai.ChatCompletion.create(
                 model=self.openai_query_model,
