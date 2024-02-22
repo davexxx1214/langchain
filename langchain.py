@@ -13,6 +13,7 @@ from pinecone import Pinecone
 from langchain_community.vectorstores import Pinecone as PineconeStore
 from langchain_community.embeddings.openai import OpenAIEmbeddings
 import openai
+import re
 
 @plugins.register(
     name="Langchain",
@@ -69,6 +70,7 @@ class Langchain(Plugin):
             return
 
         content = e_context["context"].content
+        content = re.sub('\[.*?\]', '', content)
         logger.debug("[Langchain] on_handle_context. content: %s" % content)
 
         clists = e_context["context"].content.split(maxsplit=1)
