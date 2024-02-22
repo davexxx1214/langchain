@@ -109,7 +109,7 @@ class Langchain(Plugin):
         else:
             logger.info("Found in local vector store, continue...")
             prompt = e_context["context"].content + '''
-            （请尝试在以下知识库中整理出答案，找不到再自己尝试回答:
+            （请尝试在以下知识库中整理出答案，知识库如下：
              
             ''' + docs[0][0].page_content + ')'
             e_context["context"].type = ContextType.TEXT
