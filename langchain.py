@@ -59,7 +59,7 @@ class Langchain(Plugin):
 
             self.key_words = conf.get("key_words", [])
             self.key_suffix = conf.get("key_suffix", "")
-
+            self.record_unmatched = conf.get("record_unmatched", False)
 
             self.handlers[Event.ON_HANDLE_CONTEXT] = self.on_handle_context
             logger.info("[Langchain] inited")
@@ -112,15 +112,11 @@ class Langchain(Plugin):
         if score < self.llm_threshold:
             logger.info("Nothing match in local vector store, continue...")
 
-            if any(word in content for word in self.key_words):
-                logger.info("found key word in content")
-  
-                reply = Reply()
-                reply.type = ReplyType.TEXT
-                reply.content = self.key_suffix
+            if self.record_unmatched:
+                with open("unmatched.txt", "a", encoding="utf-8") as file:
+                    file.write(content + "\n" + score + "\n\n")
 
-                e_context["reply"] = reply
-                e_context.action = EventAction.CONTINUE
+            e_context.action = EventAction.CONTINUE
         else:
             logger.info("Found in local vector store, continue...")
             prompt = e_context["context"].content + '''
