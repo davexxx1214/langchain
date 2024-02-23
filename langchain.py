@@ -113,11 +113,8 @@ class Langchain(Plugin):
             logger.info("Nothing match in local vector store, continue...")
 
             if any(word in content for word in self.key_words):
-                reply = Reply()
-                reply.type = ReplyType.TEXT
-                reply.content = self.key_suffix
-
-                e_context["reply"] = reply
+                logger.info("found key word in content")
+                content += '(用户当前有付费意向，请在回复结尾加上 ' + self.key_suffix + ' )'
             e_context.action = EventAction.CONTINUE
         else:
             logger.info("Found in local vector store, continue...")
