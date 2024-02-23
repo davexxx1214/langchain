@@ -5,6 +5,8 @@ from langchain_community.vectorstores import Pinecone as PineconeStore
 from langchain_community.embeddings.openai import OpenAIEmbeddings
 
 import json
+import openai
+import re
 
 class _langchainApi:
     def __init__(self):
@@ -14,7 +16,7 @@ class _langchainApi:
         if not os.path.exists(config_path):
             raise Exception("config.json not found")
         else:
-            with open(config_path, "r") as f:
+            with open(config_path, "r",encoding='utf-8') as f:
                 conf = json.load(f)
 
         self.pinecone_api_key = conf["pinecone_api_key"]
@@ -25,8 +27,15 @@ class _langchainApi:
         self.openai_api_key = conf["openai_api_key"]
         self.openai_model_name = conf["openai_model_name"]
         self.openai_api_base = conf["openai_api_base"]
-        self.openai_api_version = conf["openai_api_version"]
-        self.openai_api_type = conf["openai_api_type"]
+
+
+        self.openai_query_key = conf["openai_query_key"]
+        self.openai_query_base = conf["openai_query_base"]
+        self.openai_query_prompt = conf["openai_query_prompt"]
+        self.openai_query_model = conf["openai_query_model"]
+        
+        openai.api_key = self.openai_query_key 
+        openai.api_base = self.openai_query_base
 
         self.llm_threshold = conf.get("llm_threshold", 0.8)
         self.plugin_trigger_prefix = conf.get("plugin_trigger_prefix", "$")
@@ -44,8 +53,6 @@ class _langchainApi:
                 deployment=self.openai_model_name,
                 openai_api_key=self.openai_api_key,
                 openai_api_base=self.openai_api_base,
-                openai_api_version=self.openai_api_version,
-                openai_api_type=self.openai_api_type
             )
             vectorstore = PineconeStore(
                 index, embed, 'text',namespace=self.pinecone_name_space
@@ -56,28 +63,31 @@ class _langchainApi:
             )
             score = docs[0][1]
             print("search docs with score : %s " % score )
-            print(docs[0][0].page_content)
+
+            query = content + "（请尝试在以下知识库中整理出答案，找不到再自己尝试回答:" + docs[0][0].page_content + ")"
+            response = openai.ChatCompletion.create(
+                model=self.openai_query_model, # model = "deployment_name".
+               
+                messages=[
+                    {"role": "system", "content": self.openai_query_prompt },
+                    {"role": "user", "content": query}
+                ]
+            )
+            res_content = response.choices[0].message.content.strip().replace("<|endoftext|>", "")
+            print(res_content)
+
+            # print(docs[0][0].page_content)
         except Exception as e:
             raise e
     
-        # score = docs[0][1]
-        # print("search docs with score : %s " % score );
-        # print("LLM  threshold is : %s " % self.llm_threshold);
-        # if score < self.llm_threshold:
-        #     print("Nothing match in local vector store, continue...");
-        # else:
-        #     print("Found in local vector store, continue...");
-        #     prompt = '''
-        #     结合上下文，请优先尝试从以下内容中寻找到答案：
-             
-        #     ''' + docs[0][0].page_content
-
 def main():
 
     
     api = _langchainApi()
-
-    api.get_docs('如何学好数理')
+    content = 'Mega怎么用'
+    content = re.sub('\[.*?\]', '', content)
+    print(content)
+    api.get_docs(content)
 
 if __name__ == '__main__':
     main()
