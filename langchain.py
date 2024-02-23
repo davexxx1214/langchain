@@ -115,7 +115,7 @@ class Langchain(Plugin):
             if self.record_unmatched:
                 logger.info("recording unmatched content ...")
                 with open("unmatched.txt", "a", encoding="utf-8") as file:
-                    file.write(content + "\n" + score + "\n\n")
+                    file.write(content + "\n" + str(score) + "\n\n")
 
             e_context.action = EventAction.CONTINUE
         else:
