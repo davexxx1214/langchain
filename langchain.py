@@ -113,6 +113,7 @@ class Langchain(Plugin):
             logger.info("Nothing match in local vector store, continue...")
 
             if self.record_unmatched:
+                logger.info("recording unmatched content ...")
                 with open("unmatched.txt", "a", encoding="utf-8") as file:
                     file.write(content + "\n" + score + "\n\n")
 
