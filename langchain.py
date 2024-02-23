@@ -57,6 +57,10 @@ class Langchain(Plugin):
             self.llm_threshold = conf.get("llm_threshold", 0.8)
             self.plugin_trigger_prefix = conf.get("plugin_trigger_prefix", "$")
 
+            self.key_words = conf.get("key_words", [])
+            self.key_suffix = conf.get("key_suffix", "")
+
+
             self.handlers[Event.ON_HANDLE_CONTEXT] = self.on_handle_context
             logger.info("[Langchain] inited")
         except Exception as e:
@@ -107,6 +111,13 @@ class Langchain(Plugin):
         logger.info("LLM  threshold is : %s " % self.llm_threshold)
         if score < self.llm_threshold:
             logger.info("Nothing match in local vector store, continue...")
+
+            if any(word in content for word in self.key_words):
+                reply = Reply()
+                reply.type = ReplyType.TEXT
+                reply.content = self.key_suffix
+
+                e_context["reply"] = reply
             e_context.action = EventAction.CONTINUE
         else:
             logger.info("Found in local vector store, continue...")
@@ -127,6 +138,9 @@ class Langchain(Plugin):
                 ]
             )
             res_content = response.choices[0].message.content.strip().replace("<|endoftext|>", "")
+            if any(word in res_content for word in self.key_words):
+                res_content += self.key_suffix
+
             reply = Reply()
             reply.type = ReplyType.TEXT
             reply.content = res_content
