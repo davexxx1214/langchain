@@ -80,7 +80,7 @@ class Langchain(Plugin):
 
         content = re.sub(pattern, repl, content, flags=re.IGNORECASE)
 
-        logger.debug("[Langchain] on_handle_context. content: %s" % content)
+        logger.info("[Langchain] on_handle_context. content: %s" % content)
 
         clists = e_context["context"].content.split(maxsplit=1)
         if clists[0].startswith(self.plugin_trigger_prefix) | clists[0].startswith('/'):
