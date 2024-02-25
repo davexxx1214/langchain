@@ -75,6 +75,11 @@ class Langchain(Plugin):
 
         content = e_context["context"].content
         content = re.sub('\[.*?\]', '', content)
+        pattern = r"(?<!EasyAR\s)(mega|MEGA|Mega)"
+        repl = r"EasyAR \1"
+
+        content = re.sub(pattern, repl, content, flags=re.IGNORECASE)
+
         logger.debug("[Langchain] on_handle_context. content: %s" % content)
 
         clists = e_context["context"].content.split(maxsplit=1)
@@ -137,8 +142,8 @@ class Langchain(Plugin):
                 ]
             )
             res_content = response.choices[0].message.content.strip().replace("<|endoftext|>", "")
-            if any(word in res_content for word in self.key_words):
-                res_content += self.key_suffix
+            # if any(word in res_content for word in self.key_words):
+            #     res_content += self.key_suffix
 
             reply = Reply()
             reply.type = ReplyType.TEXT
