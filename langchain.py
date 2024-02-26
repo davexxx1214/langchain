@@ -50,7 +50,7 @@ class Langchain(Plugin):
             self.openai_query_base = conf["openai_query_base"]
             self.openai_query_prompt = conf["openai_query_prompt"]
             self.openai_query_model = conf["openai_query_model"]
-            
+
             openai.api_key = self.openai_query_key 
             openai.api_base = self.openai_query_base
 
@@ -134,6 +134,7 @@ class Langchain(Plugin):
             e_context["context"].type = ContextType.TEXT
             e_context["context"].content = prompt.replace("\n", "")
             logger.info("prompt is : %s " % prompt)
+            logger.info("openai_query_model is : %s " % self.openai_query_model)
 
             response = openai.ChatCompletion.create(
                 model=self.openai_query_model,
