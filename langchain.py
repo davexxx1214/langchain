@@ -13,6 +13,7 @@ from pinecone import Pinecone
 from langchain_community.vectorstores import Pinecone as PineconeStore
 from langchain_community.embeddings.openai import OpenAIEmbeddings
 import openai
+import requests
 import re
 
 @plugins.register(
@@ -51,8 +52,11 @@ class Langchain(Plugin):
             self.openai_query_prompt = conf["openai_query_prompt"]
             self.openai_query_model = conf["openai_query_model"]
 
-            openai.api_key = self.openai_query_key 
-            openai.api_base = self.openai_query_base
+            self.platform = conf.get("platform", "openai")
+            if self.platform is "openai":
+                openai.api_key = self.openai_query_key 
+                openai.api_base = self.openai_query_base
+
 
             self.llm_threshold = conf.get("llm_threshold", 0.8)
             self.plugin_trigger_prefix = conf.get("plugin_trigger_prefix", "$")
@@ -136,15 +140,40 @@ class Langchain(Plugin):
             logger.info("prompt is : %s " % prompt)
             logger.info("openai_query_model is : %s " % self.openai_query_model)
 
-            response = openai.ChatCompletion.create(
-                model=self.openai_query_model,
-               
-                messages=[
-                    {"role": "system", "content": self.openai_query_prompt },
-                    {"role": "user", "content": prompt.replace("\n", "")}
-                ]
-            )
-            res_content = response.choices[0].message.content.strip().replace("<|endoftext|>", "")
+            if self.platform is "openai":
+                response = openai.ChatCompletion.create(
+                    model=self.openai_query_model,
+                
+                    messages=[
+                        {"role": "system", "content": self.openai_query_prompt },
+                        {"role": "user", "content": prompt.replace("\n", "")}
+                    ]
+                )
+                res_content = response.choices[0].message.content.strip().replace("<|endoftext|>", "")
+            else:
+                headers = {
+                    'Authorization': f'Bearer {self.openai_query_key}'
+                }
+
+                data = {
+                    "model": self.openai_query_model,
+                    # "messages": [{"role": "user", "content": prompt}]
+                    "messages": [
+                                    {"role": "system", "content": self.openai_query_prompt},
+                                    {"role": "user", "content": prompt.replace("\n", "")}
+                                ]
+                }
+                url = "https://api.mistral.ai/v1/chat/completions"
+                response = requests.post(url, headers=headers, json=data)
+                if response.status_code == 200:
+                    response_json = response.json()
+                    content = response_json['choices'][0]['message']['content']
+                    res_content = content.strip().replace("<|endoftext|>", "")
+                else:
+                    print(f"Error: Received status code {response.status_code}")
+                    print(response.text)
+                    res_content = response.text
+
             # if any(word in res_content for word in self.key_words):
             #     res_content += self.key_suffix
 
