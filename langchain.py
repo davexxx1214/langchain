@@ -13,6 +13,7 @@ from pinecone import Pinecone
 from langchain_community.vectorstores import Pinecone as PineconeStore
 from langchain_community.embeddings.openai import OpenAIEmbeddings
 import openai
+import requests
 import re
 
 @plugins.register(
@@ -129,17 +130,38 @@ class Langchain(Plugin):
             logger.info("prompt is : %s " % prompt)
             logger.info("openai_query_model is : %s " % self.openai_query_model)
 
-            response = openai.ChatCompletion.create(
-                model=self.openai_query_model,
-               
-                messages=[
-                    {"role": "system", "content": self.openai_query_prompt },
-                    {"role": "user", "content": prompt.replace("\n", "")}
-                ]
-            )
-            res_content = response.choices[0].message.content.strip().replace("<|endoftext|>", "")
-            if any(word in res_content for word in self.key_words):
-                res_content += self.key_suffix
+            if self.platform is "openai":
+                response = openai.ChatCompletion.create(
+                    model=self.openai_query_model,
+                
+                    messages=[
+                        {"role": "system", "content": self.openai_query_prompt },
+                        {"role": "user", "content": prompt.replace("\n", "")}
+                    ]
+                )
+                res_content = response.choices[0].message.content.strip().replace("<|endoftext|>", "")
+            else:
+                headers = {
+                    'Authorization': f'Bearer {self.openai_query_key}'
+                }
+
+                data = {
+                    "model": self.openai_query_model,
+                    "messages": [
+                        {"role": "system", "content": self.openai_query_prompt},
+                        {"role": "user", "content": prompt.replace("\n", "")}
+                    ]
+                }
+                url = "https://api.mistral.ai/v1/chat/completions"
+                response = requests.post(url, headers=headers, json=data)
+                if response.status_code == 200:
+                    response_json = response.json()
+                    content = response_json['choices'][0]['message']['content']
+                    res_content = content.strip().replace("<|endoftext|>", "")
+                else:
+                    print(f"Error: Received status code {response.status_code}")
+                    print(response.text)
+                    res_content = response.text
 
             reply = Reply()
             reply.type = ReplyType.TEXT
