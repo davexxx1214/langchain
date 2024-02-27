@@ -53,7 +53,7 @@ class Langchain(Plugin):
             self.openai_query_model = conf["openai_query_model"]
 
             self.platform = conf.get("platform", "openai")
-            if self.platform is "openai":
+            if self.platform == "openai":
                 openai.api_key = self.openai_query_key 
                 openai.api_base = self.openai_query_base
 
@@ -132,7 +132,7 @@ class Langchain(Plugin):
             logger.info("prompt is : %s " % prompt)
             logger.info("openai_query_model is : %s " % self.openai_query_model)
 
-            if self.platform is "openai":
+            if self.platform == "openai":
                 response = openai.ChatCompletion.create(
                     model=self.openai_query_model,
                 
