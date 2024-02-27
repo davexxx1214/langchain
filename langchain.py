@@ -52,8 +52,10 @@ class Langchain(Plugin):
             self.openai_query_prompt = conf["openai_query_prompt"]
             self.openai_query_model = conf["openai_query_model"]
 
-            openai.api_key = self.openai_query_key 
-            openai.api_base = self.openai_query_base
+            self.platform = conf.get("platform", "openai")
+            if self.platform is "openai":
+                openai.api_key = self.openai_query_key 
+                openai.api_base = self.openai_query_base
 
             self.llm_threshold = conf.get("llm_threshold", 0.8)
             self.plugin_trigger_prefix = conf.get("plugin_trigger_prefix", "$")
