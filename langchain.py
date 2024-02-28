@@ -56,6 +56,11 @@ class Langchain(Plugin):
             if self.platform == "openai":
                 openai.api_key = self.openai_query_key 
                 openai.api_base = self.openai_query_base
+                logger.info(f"setting openai api base to : {self.openai_query_base}")
+            else:
+                openai.api_key = self.openai_api_key 
+                openai.api_base = self.openai_api_base
+                logger.info(f"setting openai api base to : {self.openai_query_base}")
 
 
             self.llm_threshold = conf.get("llm_threshold", 0.8)
