@@ -118,7 +118,8 @@ class Langchain(Plugin):
             )
         except Exception as e:
             logger.warn("[pinecone] init failed.")
-            raise e
+            e_context.action = EventAction.CONTINUE
+            return
     
         score = docs[0][1]
         logger.info("search docs with score : %s " % score )
