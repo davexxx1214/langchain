@@ -46,6 +46,8 @@ class Langchain(Plugin):
             self.openai_api_key = conf["openai_api_key"]
             self.openai_model_name = conf["openai_model_name"]
             self.openai_api_base = conf["openai_api_base"]
+            self.openai_api_version = conf["openai_api_version"]
+            self.openai_api_type = conf["openai_api_type"]
 
             self.openai_query_key = conf["openai_query_key"]
             self.openai_query_base = conf["openai_query_base"]
@@ -94,9 +96,11 @@ class Langchain(Plugin):
 
             embed = OpenAIEmbeddings(
                 model=self.openai_model_name,
-                deployment=self.openai_model_name,
+                deployment=self.openai_model_name, 
                 openai_api_key=self.openai_api_key,
                 openai_api_base=self.openai_api_base
+                openai_api_version=self.openai_api_version,
+                openai_api_type=self.openai_api_type
             )
             vectorstore = PineconeStore(
                 index, embed, 'text',namespace=self.pinecone_name_space
