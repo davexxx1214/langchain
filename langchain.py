@@ -98,7 +98,7 @@ class Langchain(Plugin):
                 model=self.openai_model_name,
                 deployment=self.openai_model_name, 
                 openai_api_key=self.openai_api_key,
-                openai_api_base=self.openai_api_base
+                openai_api_base=self.openai_api_base,
                 openai_api_version=self.openai_api_version,
                 openai_api_type=self.openai_api_type
             )
