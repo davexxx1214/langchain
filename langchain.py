@@ -89,7 +89,7 @@ class Langchain(Plugin):
         pattern = r"(?<!EasyAR\s)(mega|MEGA|Mega)"
         repl = r"EasyAR \1"
 
-        content = re.sub(pattern, repl, content, flags=re.IGNORECASE)
+        content = re.sub(pattern, repl, content, flags=re.IGNORECASE) + '(EasyAR)'
 
         logger.info("[Langchain] on_handle_context. content: %s" % content)
 
