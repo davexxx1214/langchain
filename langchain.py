@@ -86,10 +86,10 @@ class Langchain(Plugin):
 
         content = e_context["context"].content
         content = re.sub('\[.*?\]', '', content)
-        pattern = r"(?<!EasyAR\s)(mega|MEGA|Mega)"
+        pattern = r"(?<!EasyAR\s)(mega|MEGA|Mega|Sence|sence|Sparse Spatial Map|)"
         repl = r"EasyAR \1"
 
-        content = re.sub(pattern, repl, content, flags=re.IGNORECASE) + '(EasyAR)'
+        content = re.sub(pattern, repl, content, flags=re.IGNORECASE)
 
         logger.info("[Langchain] on_handle_context. content: %s" % content)
 
