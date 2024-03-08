@@ -86,7 +86,7 @@ class Langchain(Plugin):
 
         content = e_context["context"].content
         content = re.sub('\[.*?\]', '', content)
-        pattern = r"(?<!EasyAR\s)(mega|MEGA|Mega|Sence|sence|Sparse Spatial Map|)"
+        pattern = r"(?<!EasyAR\s)(mega|MEGA|Mega|Sence|sence)"
         repl = r"EasyAR \1"
 
         content = re.sub(pattern, repl, content, flags=re.IGNORECASE)
